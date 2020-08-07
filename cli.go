@@ -2,13 +2,26 @@ package cli
 
 import (
     "bytes"
+    "errors"
     "os/exec"
     "runtime"
 )
 
+var linuxDarwinShellPathList []string = []string {
+    "/bin/bash",
+    "/usr/bin/bash",
+    "/usr/local/bin/bash",
+    "/bin/sh",
+}
+
+// Setup the command but don't run it, return exec.Cmd for granular manipulation.
+func MakeCommand(command string) (*exec.Cmd, error) {
+    return makeCommandWithPrefix(command)
+}
+
 // Setup the command and execute it right away. Return the stdout and stderr.
-func RunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stderr bytes.Buffer, err error) {
-    cmd = makeCommandWithPrefix(command)
+func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stderr bytes.Buffer, err error) {
+    cmd, err = makeCommandWithPrefix(command)
 
     cmd.Stdout = &stdout
     cmd.Stderr = &stderr
@@ -21,24 +34,30 @@ func RunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stderr byte
 }
 
 // Setup the command and execute it right away. Return the stdout and stderr together as a stream
-func RunCommandCombinedOutput(command string) (cmd *exec.Cmd, err error) {
+func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, err error) {
     // TODO
     return nil, nil
 }
 
-// Setup the command but don't run it, return exec.Cmd for granular manipulation.
-func SetupCommand(command string) *exec.Cmd {
-    cmd := makeCommandWithPrefix(command)
-    return cmd
-}
-
-func makeCommandWithPrefix(command string) *exec.Cmd {
-    shell := "bash"
+func makeCommandWithPrefix(command string) (*exec.Cmd, error) {
+    shell := ""
     prefix := "-c"
+
     if runtime.GOOS == "windows" {
         shell = "cmd.exe"
         prefix = "/C"
+    } else {
+        for _, path := range linuxDarwinShellPathList {
+            if fileExists(path) {
+                shell = path
+                break
+            }
+        }
+
+        if shell == "" {
+            return nil, errors.New("could not find shell")
+        }
     }
 
-    return exec.Command(shell, prefix, command)
+    return exec.Command(shell, prefix, command), nil
 }
