@@ -4,4 +4,4 @@ A simple cross-platform Golang library to make it easy to run native CLI command
 
 ## Getting Started
 
-TODO
+Please see the `example/` directory for code samples on how to use.
