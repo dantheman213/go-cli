@@ -19,9 +19,12 @@ func MakeCommand(command string) (*exec.Cmd, error) {
     return makeCommandWithPrefix(command)
 }
 
-// Setup the command and execute it right away. Return the stdout and stderr.
+// Setup the command and execute it right away. Return the stdout and stderr buffers.
 func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stderr bytes.Buffer, err error) {
     cmd, err = makeCommandWithPrefix(command)
+    if err != nil {
+        return nil, bytes.Buffer{}, bytes.Buffer{}, err
+    }
 
     cmd.Stdout = &stdout
     cmd.Stderr = &stderr
@@ -33,7 +36,7 @@ func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stde
     return cmd, stdout, stderr, nil
 }
 
-// Setup the command and execute it right away. Return the stdout and stderr together as a stream
+// Setup the command and execute it right away. Return the stdout and stderr buffers together as a stream
 func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, err error) {
     // TODO
     return nil, nil
