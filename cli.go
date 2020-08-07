@@ -3,6 +3,8 @@ package cli
 import (
     "bytes"
     "errors"
+    "io"
+    "os"
     "os/exec"
     "runtime"
 )
@@ -26,8 +28,11 @@ func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stde
         return nil, bytes.Buffer{}, bytes.Buffer{}, err
     }
 
-    cmd.Stdout = &stdout
-    cmd.Stderr = &stderr
+    mwOut := io.MultiWriter(os.Stdout, &stdout)
+    cmd.Stdout = mwOut
+
+    mwErr := io.MultiWriter(os.Stderr, &stderr)
+    cmd.Stderr = mwErr
 
     if err := cmd.Start(); err != nil {
         return nil, bytes.Buffer{}, bytes.Buffer{}, err
@@ -36,10 +41,51 @@ func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stde
     return cmd, stdout, stderr, nil
 }
 
+func MakeAndRunCommandThenWait(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stderr bytes.Buffer, err error) {
+    cmd, stdout, stderr, err = MakeAndRunCommand(command)
+    if err != nil {
+        return nil, bytes.Buffer{}, bytes.Buffer{}, err
+    }
+
+    err = cmd.Wait()
+    if err != nil {
+        return nil, bytes.Buffer{}, bytes.Buffer{}, err
+    }
+
+    return cmd, stdout, stderr, nil
+}
+
 // Setup the command and execute it right away. Return the stdout and stderr buffers together as a stream
-func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, err error) {
-    // TODO
-    return nil, nil
+func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, stdout bytes.Buffer, err error) {
+    cmd, err = makeCommandWithPrefix(command)
+    if err != nil {
+        return nil, bytes.Buffer{}, err
+    }
+
+    mw := io.MultiWriter(os.Stdout, &stdout)
+    cmd.Stdout = mw
+    cmd.Stderr = mw
+
+    if err := cmd.Start(); err != nil {
+        return nil, bytes.Buffer{}, err
+    }
+
+    return cmd, stdout, nil
+}
+
+// Setup the command execute it right away with combined stdout and stderr buffers then wait for command to finish
+func MakeAndRunCommandWithCombinedOutputThenWait(command string) (cmd *exec.Cmd, stdout bytes.Buffer, err error) {
+    cmd, stdout, err = MakeAndRunCommandWithCombinedOutput(command)
+    if err != nil {
+        return nil, bytes.Buffer{}, err
+    }
+
+    err = cmd.Wait()
+    if err != nil {
+        return nil, bytes.Buffer{}, err
+    }
+
+    return cmd, stdout, nil
 }
 
 func makeCommandWithPrefix(command string) (*exec.Cmd, error) {

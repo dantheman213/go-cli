@@ -7,17 +7,37 @@ import (
 )
 
 func main() {
-    if runtime.GOOS != "windows" {
-        command := `cd /tmp && echo "Hello World!" > hello_world.txt && cat /tmp/hello_world.txt`
-        cmd, stdout, stderr, err := cli.RunCommand(command)
-        if err != nil {
-            panic(err)
-        }
-
-        _ = cmd.Wait()
-        fmt.Println(stdout.String())
-        fmt.Println(stderr.String())
-    } else {
+    if runtime.GOOS == "windows" {
         fmt.Println("TODO")
+    } else {
+        runLinuxDarwinCommandSampleOne()
+        runLinuxDarwinCommandSampleTwo()
     }
+}
+
+func runLinuxDarwinCommandSampleOne() {
+    command := `cd /tmp && echo "Hello World!" > hello_world.txt && cat /tmp/hello_world.txt`
+    _, stdout, stderr, err := cli.MakeAndRunCommandThenWait(command)
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Println(stdout.String())
+    fmt.Println(stderr.String())
+}
+
+func runLinuxDarwinCommandSampleTwo() {
+    command := `echo "Hello, Path! $PATH"`
+    cmd, stdout, stderr, err := cli.MakeAndRunCommand(command)
+    if err != nil {
+        panic(err)
+    }
+
+    err = cmd.Wait()
+    if err != nil {
+        panic(err)
+    }
+
+    fmt.Println(stdout.String())
+    fmt.Println(stderr.String())
 }
