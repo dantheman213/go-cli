@@ -38,6 +38,6 @@ func runLinuxDarwinCommandSampleTwo() {
         panic(err)
     }
 
-    fmt.Println(stdout.String())
-    fmt.Println(stderr.String())
+    fmt.Println("OUTPUT: " + stdout.String())
+    fmt.Println("ERROR: " + stderr.String())
 }

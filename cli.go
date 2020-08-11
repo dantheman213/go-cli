@@ -3,8 +3,6 @@ package cli
 import (
     "bytes"
     "errors"
-    "io"
-    "os"
     "os/exec"
     "runtime"
 )
@@ -22,67 +20,67 @@ func MakeCommand(command string) (*exec.Cmd, error) {
 }
 
 // Setup the command and execute it right away. Return the stdout and stderr buffers.
-func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stderr bytes.Buffer, err error) {
+func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout *bytes.Buffer, stderr *bytes.Buffer, err error) {
     cmd, err = makeCommandWithPrefix(command)
     if err != nil {
-        return nil, bytes.Buffer{}, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
     }
 
-    mwOut := io.MultiWriter(os.Stdout, &stdout)
-    cmd.Stdout = mwOut
+    var bufOut bytes.Buffer = bytes.Buffer{}
+    cmd.Stdout = &bufOut
 
-    mwErr := io.MultiWriter(os.Stderr, &stderr)
-    cmd.Stderr = mwErr
+    var bufErr bytes.Buffer = bytes.Buffer{}
+    cmd.Stderr = &bufErr
 
     if err := cmd.Start(); err != nil {
-        return nil, bytes.Buffer{}, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
     }
 
-    return cmd, stdout, stderr, nil
+    return cmd, &bufOut, &bufErr, nil
 }
 
-func MakeAndRunCommandThenWait(command string) (cmd *exec.Cmd, stdout bytes.Buffer, stderr bytes.Buffer, err error) {
+func MakeAndRunCommandThenWait(command string) (cmd *exec.Cmd, stdout *bytes.Buffer, stderr *bytes.Buffer, err error) {
     cmd, stdout, stderr, err = MakeAndRunCommand(command)
     if err != nil {
-        return nil, bytes.Buffer{}, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
     }
 
     err = cmd.Wait()
     if err != nil {
-        return nil, bytes.Buffer{}, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
     }
 
     return cmd, stdout, stderr, nil
 }
 
 // Setup the command and execute it right away. Return the stdout and stderr buffers together as a stream
-func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, stdout bytes.Buffer, err error) {
+func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, out *bytes.Buffer, err error) {
     cmd, err = makeCommandWithPrefix(command)
     if err != nil {
-        return nil, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, err
     }
 
-    mw := io.MultiWriter(os.Stdout, &stdout)
-    cmd.Stdout = mw
-    cmd.Stderr = mw
+    var buf bytes.Buffer = bytes.Buffer{}
+    cmd.Stdout = &buf
+    cmd.Stderr = &buf
 
     if err := cmd.Start(); err != nil {
-        return nil, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, err
     }
 
-    return cmd, stdout, nil
+    return cmd, &buf, nil
 }
 
 // Setup the command execute it right away with combined stdout and stderr buffers then wait for command to finish
-func MakeAndRunCommandWithCombinedOutputThenWait(command string) (cmd *exec.Cmd, stdout bytes.Buffer, err error) {
+func MakeAndRunCommandWithCombinedOutputThenWait(command string) (cmd *exec.Cmd, stdout *bytes.Buffer, err error) {
     cmd, stdout, err = MakeAndRunCommandWithCombinedOutput(command)
     if err != nil {
-        return nil, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, err
     }
 
     err = cmd.Wait()
     if err != nil {
-        return nil, bytes.Buffer{}, err
+        return nil, &bytes.Buffer{}, err
     }
 
     return cmd, stdout, nil
