@@ -6,7 +6,7 @@ BUILD_FLAGS := -installsuffix "static"
 
 all: build
 
-build: deps
+build:
 	@echo Compiling binary...
 	@CGO_ENABLED=1 \
 	GO111MODULE=on \
@@ -22,6 +22,3 @@ clean:
 	@echo Cleaning bin/ directory...
 	@rm -rfv bin/
 
-deps:
-	@echo Downloading go.mod dependencies
-	@go mod download
