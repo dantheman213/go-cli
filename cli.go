@@ -93,7 +93,7 @@ func makeCommandWithPrefix(command string) (*exec.Cmd, error) {
     if runtime.GOOS == "windows" {
         shell = "cmd.exe"
         prefix = "/C"
-    } else {
+    } else if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
         for _, path := range linuxDarwinShellPathList {
             if fileExists(path) {
                 shell = path
@@ -104,6 +104,8 @@ func makeCommandWithPrefix(command string) (*exec.Cmd, error) {
         if shell == "" {
             return nil, errors.New("could not find shell")
         }
+    } else {
+        return nil, errors.New("unsupported operating system detected")
     }
 
     return exec.Command(shell, prefix, command), nil
