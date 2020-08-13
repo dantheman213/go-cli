@@ -23,17 +23,17 @@ func MakeCommand(command string) (*exec.Cmd, error) {
 func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout *bytes.Buffer, stderr *bytes.Buffer, err error) {
     cmd, err = makeCommandWithPrefix(command)
     if err != nil {
-        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
+        return nil, nil, nil, err
     }
 
-    var bufOut bytes.Buffer = bytes.Buffer{}
+    bufOut  := bytes.Buffer{}
     cmd.Stdout = &bufOut
 
-    var bufErr bytes.Buffer = bytes.Buffer{}
+    bufErr := bytes.Buffer{}
     cmd.Stderr = &bufErr
 
     if err := cmd.Start(); err != nil {
-        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
+        return nil, nil, nil, err
     }
 
     return cmd, &bufOut, &bufErr, nil
@@ -60,7 +60,7 @@ func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, out *by
         return nil, &bytes.Buffer{}, err
     }
 
-    var buf bytes.Buffer = bytes.Buffer{}
+    buf := bytes.Buffer{}
     cmd.Stdout = &buf
     cmd.Stderr = &buf
 
