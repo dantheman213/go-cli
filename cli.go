@@ -42,12 +42,12 @@ func MakeAndRunCommand(command string) (cmd *exec.Cmd, stdout *bytes.Buffer, std
 func MakeAndRunCommandThenWait(command string) (cmd *exec.Cmd, stdout *bytes.Buffer, stderr *bytes.Buffer, err error) {
     cmd, stdout, stderr, err = MakeAndRunCommand(command)
     if err != nil {
-        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
+        return nil, nil, nil, err
     }
 
     err = cmd.Wait()
     if err != nil {
-        return nil, &bytes.Buffer{}, &bytes.Buffer{}, err
+        return nil, nil, nil, err
     }
 
     return cmd, stdout, stderr, nil
@@ -57,7 +57,7 @@ func MakeAndRunCommandThenWait(command string) (cmd *exec.Cmd, stdout *bytes.Buf
 func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, out *bytes.Buffer, err error) {
     cmd, err = makeCommandWithPrefix(command)
     if err != nil {
-        return nil, &bytes.Buffer{}, err
+        return nil, nil, err
     }
 
     buf := bytes.Buffer{}
@@ -65,7 +65,7 @@ func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, out *by
     cmd.Stderr = &buf
 
     if err := cmd.Start(); err != nil {
-        return nil, &bytes.Buffer{}, err
+        return nil, nil, err
     }
 
     return cmd, &buf, nil
@@ -75,12 +75,12 @@ func MakeAndRunCommandWithCombinedOutput(command string) (cmd *exec.Cmd, out *by
 func MakeAndRunCommandWithCombinedOutputThenWait(command string) (cmd *exec.Cmd, stdout *bytes.Buffer, err error) {
     cmd, stdout, err = MakeAndRunCommandWithCombinedOutput(command)
     if err != nil {
-        return nil, &bytes.Buffer{}, err
+        return nil, nil, err
     }
 
     err = cmd.Wait()
     if err != nil {
-        return nil, &bytes.Buffer{}, err
+        return nil, nil, err
     }
 
     return cmd, stdout, nil
