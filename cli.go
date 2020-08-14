@@ -12,6 +12,7 @@ var linuxDarwinShellPathList []string = []string {
     "/usr/bin/bash",
     "/usr/local/bin/bash",
     "/bin/sh",
+    "/bin/zsh",
 }
 
 // Setup the command but don't run it, return exec.Cmd for granular manipulation.
